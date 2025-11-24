@@ -1,10 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import SplitDiffView from "@/components/SplitDiffView";
-import { ModeToggle } from "@/components/mode-toggle";
+import JsonFormatter from "@/components/JsonFormatter";
+import Navigation from "@/components/Navigation";
 import Script from "next/script";
+import { Button } from "@/components/ui/button";
+import { GitCompare, FileJson } from "lucide-react";
 
 export default function Home() {
+  const [mode, setMode] = useState<"diff" | "formatter">("diff");
+
   const sampleOld = JSON.stringify(
     {
       name: "Hanumanthappa N B",
@@ -31,24 +37,25 @@ export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "JSON Diff Engine",
-    "description": "Free online tool to compare and visualize differences between JSON files",
-    "url": "https://jsondiffengine.com",
-    "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Any",
-    "offers": {
+    name: "JSON Diff Engine",
+    description:
+      "Free online tool to compare and visualize differences between JSON files",
+    url: "https://jsondiffengine.com",
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any",
+    offers: {
       "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "INR"
+      price: "0",
+      priceCurrency: "USD",
     },
-    "featureList": [
+    featureList: [
       "Side-by-side JSON comparison",
       "Syntax highlighting",
       "Real-time validation",
       "File upload support",
       "Dark mode",
-      "JSON formatting"
-    ]
+      "JSON formatting",
+    ],
   };
 
   return (
@@ -61,29 +68,47 @@ export default function Home() {
       <main className="flex min-h-screen flex-col items-center bg-background text-foreground relative">
         <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
 
-        <div className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-14 max-w-screen-2xl items-center justify-between px-8">
-            <div className="flex items-center gap-3 font-bold tracking-tight">
-              <img src="/logo.png" alt="JSON Diff Engine Logo" className="h-8 w-8" />
-              <span className="bg-gradient-to-r from-indigo-500 to-cyan-500 bg-clip-text text-transparent">
-                JSON Diff Engine
-              </span>
-            </div>
-            <ModeToggle />
-          </div>
-        </div>
+        <Navigation />
 
         <div className="w-full max-w-7xl flex-1 p-5 md:p-12">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-fuchsia-500 to-cyan-500 bg-clip-text text-transparent">
-              Compare JSON
+              {mode === "diff" ? "Compare JSON" : "JSON Formatter"}
             </h1>
-
-            <p className="text-muted-foreground">
-              Paste your JSON below to see the differences.
+            <p className="text-muted-foreground mb-4">
+              {mode === "diff"
+                ? "Paste your JSON below to see the differences."
+                : "Format, validate, and minify your JSON with ease."}
             </p>
+
+            {/* Mode Toggle */}
+            <div className="flex items-center justify-center gap-2 bg-muted/50 p-1 rounded-lg inline-flex">
+              <Button
+                variant={mode === "diff" ? "secondary" : "ghost"}
+                onClick={() => setMode("diff")}
+                size="sm"
+                className="h-9 px-4 gap-2"
+              >
+                <GitCompare size={16} />
+                JSON Diff
+              </Button>
+              <Button
+                variant={mode === "formatter" ? "secondary" : "ghost"}
+                onClick={() => setMode("formatter")}
+                size="sm"
+                className="h-9 px-4 gap-2"
+              >
+                <FileJson size={16} />
+                Formatter
+              </Button>
+            </div>
           </div>
-          <SplitDiffView initialOld={sampleOld} initialNew={sampleNew} />
+
+          {mode === "diff" ? (
+            <SplitDiffView initialOld={sampleOld} initialNew={sampleNew} />
+          ) : (
+            <JsonFormatter />
+          )}
         </div>
       </main>
     </>

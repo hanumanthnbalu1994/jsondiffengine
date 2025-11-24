@@ -341,28 +341,30 @@ export default function SplitDiffView({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                <input
-                  type="file"
-                  ref={oldFileInputRef}
-                  className="hidden"
-                  accept=".json,.txt"
-                  onChange={(e) => handleFileUpload(e, "old")}
-                />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      onClick={() => oldFileInputRef.current?.click()}
-                    >
-                      <Upload size={14} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Upload File</TooltipContent>
-                </Tooltip>
-              </div>
+              {mode === "edit" && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="file"
+                    ref={oldFileInputRef}
+                    className="hidden"
+                    accept=".json,.txt"
+                    onChange={(e) => handleFileUpload(e, "old")}
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => oldFileInputRef.current?.click()}
+                      >
+                        <Upload size={14} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Upload File</TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
             </div>
 
             <div className="relative flex-1 flex flex-col min-h-0 group bg-background/50">
@@ -446,28 +448,30 @@ export default function SplitDiffView({
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                <input
-                  type="file"
-                  ref={newFileInputRef}
-                  className="hidden"
-                  accept=".json,.txt"
-                  onChange={(e) => handleFileUpload(e, "new")}
-                />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      onClick={() => newFileInputRef.current?.click()}
-                    >
-                      <Upload size={14} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Upload File</TooltipContent>
-                </Tooltip>
-              </div>
+              {mode === "edit" && (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="file"
+                    ref={newFileInputRef}
+                    className="hidden"
+                    accept=".json,.txt"
+                    onChange={(e) => handleFileUpload(e, "new")}
+                  />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => newFileInputRef.current?.click()}
+                      >
+                        <Upload size={14} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Upload File</TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
             </div>
 
             <div className="relative flex-1 flex flex-col min-h-0 group bg-background/50">
