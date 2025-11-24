@@ -16,6 +16,8 @@ import {
   ArrowRightLeft,
   Trash2,
   FileType,
+  ChevronDown,
+  ArrowUp,
 } from "lucide-react";
 import {
   Tooltip,
@@ -51,6 +53,13 @@ export default function SplitDiffView({
   const leftScrollRef = useRef<HTMLDivElement>(null);
   const rightScrollRef = useRef<HTMLDivElement>(null);
   const isScrolling = useRef<"left" | "right" | null>(null);
+
+  // Ref for change navigation
+  const changeRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  // State for scroll to top button
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Validate JSON on change
   useEffect(() => {
@@ -101,22 +110,24 @@ export default function SplitDiffView({
 
           for (let j = 0; j < maxLines; j++) {
             lines.push({
-              left: j < removedLines.length
-                ? { text: removedLines[j], type: "removed" }
-                : { text: "", type: "empty" },
-              right: j < addedLines.length
-                ? { text: addedLines[j], type: "added" }
-                : { text: "", type: "empty" }
+              left:
+                j < removedLines.length
+                  ? { text: removedLines[j], type: "removed" }
+                  : { text: "", type: "empty" },
+              right:
+                j < addedLines.length
+                  ? { text: addedLines[j], type: "added" }
+                  : { text: "", type: "empty" },
             });
           }
           i += 2; // Skip both parts
         } else {
           // Just removed
           const partLines = part.value.replace(/\n$/, "").split("\n");
-          partLines.forEach(line => {
+          partLines.forEach((line) => {
             lines.push({
               left: { text: line, type: "removed" },
-              right: { text: "", type: "empty" }
+              right: { text: "", type: "empty" },
             });
           });
           i++;
@@ -124,20 +135,20 @@ export default function SplitDiffView({
       } else if (part.added) {
         // Just added (not following a remove, otherwise caught above)
         const partLines = part.value.replace(/\n$/, "").split("\n");
-        partLines.forEach(line => {
+        partLines.forEach((line) => {
           lines.push({
             left: { text: "", type: "empty" },
-            right: { text: line, type: "added" }
+            right: { text: line, type: "added" },
           });
         });
         i++;
       } else {
         // Unchanged
         const partLines = part.value.replace(/\n$/, "").split("\n");
-        partLines.forEach(line => {
+        partLines.forEach((line) => {
           lines.push({
             left: { text: line, type: "unchanged" },
-            right: { text: line, type: "unchanged" }
+            right: { text: line, type: "unchanged" },
           });
         });
         i++;
@@ -145,6 +156,53 @@ export default function SplitDiffView({
     }
     return lines;
   }, [diffs, mode]);
+
+  // Calculate change positions for minimap
+  const changePositions = useMemo(() => {
+    if (mode === "edit") return [];
+    const positions: { index: number; type: "added" | "removed" | "modified" }[] = [];
+
+    rows.forEach((row, index) => {
+      const hasChange =
+        (row.left?.type === "removed" || row.right?.type === "added") &&
+        (row.left?.type !== "empty" || row.right?.type !== "empty");
+
+      if (hasChange) {
+        const type =
+          row.left?.type === "removed" && row.right?.type === "added"
+            ? "modified"
+            : row.left?.type === "removed"
+              ? "removed"
+              : "added";
+        positions.push({ index, type });
+      }
+    });
+
+    return positions;
+  }, [rows, mode]);
+
+  // Navigate to a specific change
+  const scrollToChange = (index: number) => {
+    const element = changeRefs.current.get(index);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  // Scroll to top handler
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Track scroll position for scroll to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -233,87 +291,124 @@ export default function SplitDiffView({
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-full gap-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-card/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleFormat}
-                  className="h-8 gap-2"
-                >
-                  <FileJson size={14} />
-                  <span className="hidden sm:inline">Prettify</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Format JSON</TooltipContent>
-            </Tooltip>
+      <div className="flex flex-col h-full gap-0 relative">
+        {/* Sticky Toolbar - Always at top below Navigation */}
+        <div className="sticky top-14 z-20 bg-background border-b border-border/40 pb-4 mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-card/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleFormat}
+                    className="h-8 gap-2"
+                  >
+                    <FileJson size={14} />
+                    <span className="hidden sm:inline">Prettify</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Format JSON</TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSwap}
-                  className="h-8 gap-2"
-                >
-                  <ArrowRightLeft size={14} />
-                  <span className="hidden sm:inline">Swap</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Swap Left & Right</TooltipContent>
-            </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSwap}
+                    className="h-8 gap-2"
+                  >
+                    <ArrowRightLeft size={14} />
+                    <span className="hidden sm:inline">Swap</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Swap Left & Right</TooltipContent>
+              </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClear}
-                  className="h-8 gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 size={14} />
-                  <span className="hidden sm:inline">Clear</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Clear All</TooltipContent>
-            </Tooltip>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClear}
+                    className="h-8 gap-2 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 size={14} />
+                    <span className="hidden sm:inline">Clear</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Clear All</TooltipContent>
+              </Tooltip>
+            </div>
 
-          <div className="flex items-center gap-2">
-            {mode === "diff" ? (
-              <Button
-                variant="secondary"
-                onClick={() => setMode("edit")}
-                className="h-9 px-4 gap-2 font-medium shadow-sm"
-              >
-                <FileType size={16} />
-                Back to Edit
-              </Button>
-            ) : (
-              <Button
-                onClick={handleCompare}
-                disabled={
-                  !!errors.old ||
-                  !!errors.new ||
-                  !oldText.trim() ||
-                  !newText.trim()
-                }
-                className={cn(
-                  "h-9 px-6 gap-2 font-medium shadow-md transition-all",
-                  !errors.old && !errors.new && oldText.trim() && newText.trim()
-                    ? "bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700 text-white border-0"
-                    : ""
-                )}
-              >
-                <Play size={16} className="fill-current" />
-                Compare
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {mode === "diff" ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => setMode("edit")}
+                  className="h-9 px-4 gap-2 font-medium shadow-sm"
+                >
+                  <FileType size={16} />
+                  Back to Edit
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCompare}
+                  disabled={
+                    !!errors.old ||
+                    !!errors.new ||
+                    !oldText.trim() ||
+                    !newText.trim()
+                  }
+                  className={cn(
+                    "h-9 px-6 gap-2 font-medium shadow-md transition-all",
+                    !errors.old && !errors.new && oldText.trim() && newText.trim()
+                      ? "bg-gradient-to-r from-indigo-500 to-cyan-600 hover:from-indigo-600 hover:to-cyan-700 text-white border-0"
+                      : ""
+                  )}
+                >
+                  <Play size={16} className="fill-current" />
+                  Compare
+                </Button>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Change Minimap - Sticky below toolbar, only show in diff mode */}
+        {mode === "diff" && changePositions.length > 0 && (
+          <div className="sticky top-[120px] z-10 mb-4 bg-background pt-2">
+            <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Changes ({changePositions.length})
+              </span>
+              <div className="flex-1 flex items-center gap-1 overflow-x-auto">
+                {changePositions.map((change, idx) => (
+                  <Tooltip key={idx}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => scrollToChange(change.index)}
+                        className={cn(
+                          "h-6 w-1.5 rounded-sm transition-all hover:w-2 hover:h-6",
+                          change.type === "added" && "bg-green-500/70 hover:bg-green-500",
+                          change.type === "removed" && "bg-red-500/70 hover:bg-red-500",
+                          change.type === "modified" && "bg-amber-500/70 hover:bg-amber-500"
+                        )}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="flex items-center gap-1">
+                        <ChevronDown size={12} />
+                        Jump to {change.type} line {change.index + 1}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 h-[600px] font-mono text-sm">
           {/* Left Pane */}
@@ -383,27 +478,38 @@ export default function SplitDiffView({
                   onScrollCapture={() => handleScroll("left")}
                 >
                   <div className="flex flex-col py-2">
-                    {rows.map((row, i) => (
-                      <div
-                        key={i}
-                        className="flex min-h-[24px] hover:bg-muted/20 transition-colors"
-                      >
-                        <div className="w-10 text-[10px] text-muted-foreground/30 text-right pr-3 select-none pt-1">
-                          {i + 1}
-                        </div>
+                    {rows.map((row, i) => {
+                      const hasChange =
+                        (row.left?.type === "removed" || row.right?.type === "added") &&
+                        (row.left?.type !== "empty" || row.right?.type !== "empty");
+
+                      return (
                         <div
-                          className={cn(
-                            "flex-1 px-2 whitespace-pre-wrap break-all leading-relaxed",
-                            row.left?.type === "removed" &&
-                            "bg-red-500/10 text-red-600 dark:text-red-400 decoration-red-500/30",
-                            row.left?.type === "empty" && "bg-transparent select-none",
-                            !row.left && "bg-transparent"
-                          )}
+                          key={i}
+                          ref={hasChange ? (el) => {
+                            if (el) changeRefs.current.set(i, el);
+                            else changeRefs.current.delete(i);
+                          } : undefined}
+                          className="flex min-h-[24px] hover:bg-muted/20 transition-colors"
                         >
-                          {row.left?.text || " "}
+                          <div className="w-10 text-[10px] text-muted-foreground/30 text-right pr-3 select-none pt-1">
+                            {i + 1}
+                          </div>
+                          <div
+                            className={cn(
+                              "flex-1 px-2 whitespace-pre-wrap break-all leading-relaxed",
+                              row.left?.type === "removed" &&
+                              "bg-red-500/10 text-red-600 dark:text-red-400 decoration-red-500/30",
+                              row.left?.type === "empty" &&
+                              "bg-transparent select-none",
+                              !row.left && "bg-transparent"
+                            )}
+                          >
+                            {row.left?.text || " "}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               )}
@@ -411,7 +517,7 @@ export default function SplitDiffView({
               <Button
                 variant="secondary"
                 size="icon"
-                className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-all shadow-sm translate-y-1 group-hover:translate-y-0"
+                className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   copyToClipboard(oldText);
@@ -503,7 +609,8 @@ export default function SplitDiffView({
                             "flex-1 px-2 whitespace-pre-wrap break-all leading-relaxed",
                             row.right?.type === "added" &&
                             "bg-green-500/10 text-green-600 dark:text-green-400 decoration-green-500/30",
-                            row.right?.type === "empty" && "bg-transparent select-none",
+                            row.right?.type === "empty" &&
+                            "bg-transparent select-none",
                             !row.right && "bg-transparent"
                           )}
                         >
@@ -518,7 +625,7 @@ export default function SplitDiffView({
               <Button
                 variant="secondary"
                 size="icon"
-                className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-all shadow-sm translate-y-1 group-hover:translate-y-0"
+                className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   copyToClipboard(newText);
@@ -531,6 +638,23 @@ export default function SplitDiffView({
           </div>
         </div>
       </div>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={scrollToTop}
+              size="sm"
+              variant="ghost"
+              className="fixed bottom-8 right-8 h-8 w-8 rounded-full shadow-lg bg-primary/50 hover:bg-primary/90 text-primary-foreground z-50 transition-all hover:scale-110"
+            >
+              <ArrowUp size={20} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Scroll to Top</TooltipContent>
+        </Tooltip>
+      )}
     </TooltipProvider>
   );
 }
