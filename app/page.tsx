@@ -14,7 +14,7 @@ export default function Home() {
   const sampleOld = JSON.stringify(
     {
       name: "Hanumanthappa N B",
-      age: 30,
+      company: "Grasko",
       role: "Software Developer",
       skills: ["React", "Node.js"],
     },
@@ -25,9 +25,16 @@ export default function Home() {
   const sampleNew = JSON.stringify(
     {
       name: "Hanumanthappa N B",
-      age: 31,
+      company: "Grasko Solutions",
       role: "Software Developer",
-      skills: ["React", "Node.js", "Next.js"],
+      skills: [
+        "React",
+        "Node.js",
+        "Next.js",
+        "Angular",
+        "MEAN Stack",
+        "MERN Stack",
+      ],
       active: true,
     },
     null,
