@@ -14,6 +14,7 @@ import {
     Download,
     List,
     FileText,
+    ArrowRightLeft,
 } from "lucide-react";
 import {
     Tooltip,
@@ -29,6 +30,17 @@ export default function JsonFormatter() {
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<"raw" | "tree">("tree");
     const [parsedData, setParsedData] = useState<any>(null);
+
+    // Load from localStorage on mount
+    useEffect(() => {
+        const savedInput = localStorage.getItem("jsonFormatter_input");
+        if (savedInput) setJsonText(savedInput);
+    }, []);
+
+    // Save to localStorage on change
+    useEffect(() => {
+        localStorage.setItem("jsonFormatter_input", jsonText);
+    }, [jsonText]);
 
     // Tree View Controls
     const [expandAllTrigger, setExpandAllTrigger] = useState(0);
@@ -136,7 +148,7 @@ export default function JsonFormatter() {
                 {/* Sticky Toolbar - Below Navigation */}
                 <div className="sticky top-14 z-20 bg-background border-b border-border/40 pb-4 mb-4">
                     <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-card/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             {" "}
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -144,9 +156,9 @@ export default function JsonFormatter() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleFormat}
-                                        className="h-8 gap-2"
+                                        className="h-9 gap-2 px-3 touch-target transition-smooth"
                                     >
-                                        <FileJson size={14} />
+                                        <FileJson size={16} />
                                         <span className="hidden sm:inline">Format</span>
                                     </Button>
                                 </TooltipTrigger>
@@ -158,9 +170,9 @@ export default function JsonFormatter() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleMinify}
-                                        className="h-8 gap-2"
+                                        className="h-9 gap-2 px-3 touch-target transition-smooth"
                                     >
-                                        <FileJson size={14} />
+                                        <FileJson size={16} />
                                         <span className="hidden sm:inline">Minify</span>
                                     </Button>
                                 </TooltipTrigger>
@@ -172,9 +184,9 @@ export default function JsonFormatter() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleClear}
-                                        className="h-8 gap-2 text-destructive hover:text-destructive"
+                                        className="h-9 gap-2 px-3 text-destructive hover:text-destructive touch-target transition-smooth"
                                     >
-                                        <Trash2 size={14} />
+                                        <Trash2 size={16} />
                                         <span className="hidden sm:inline">Clear</span>
                                     </Button>
                                 </TooltipTrigger>
@@ -183,6 +195,23 @@ export default function JsonFormatter() {
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            const newText = jsonText.replace(/\|\|/g, ",");
+                                            setJsonText(newText);
+                                        }}
+                                        className="h-8 gap-2"
+                                    >
+                                        <ArrowRightLeft size={14} />
+                                        <span className="hidden sm:inline">|| to ,</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Replace || with ,</TooltipContent>
+                            </Tooltip>
                             {/* View Mode Toggle */}
                             <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40 mr-2">
                                 <Tooltip>
@@ -236,7 +265,7 @@ export default function JsonFormatter() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 h-[600px] font-mono text-sm">
+                <div className="flex flex-col md:grid md:grid-cols-2 gap-4 min-h-[600px] md:h-[700px] font-mono text-sm">
                     {/* Input Pane */}
                     <div
                         className={cn(

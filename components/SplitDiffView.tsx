@@ -46,6 +46,23 @@ export default function SplitDiffView({
     new: null,
   });
 
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedOld = localStorage.getItem("jsonDiff_old");
+    const savedNew = localStorage.getItem("jsonDiff_new");
+    if (savedOld !== null) setOldText(savedOld);
+    if (savedNew !== null) setNewText(savedNew);
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("jsonDiff_old", oldText);
+  }, [oldText]);
+
+  useEffect(() => {
+    localStorage.setItem("jsonDiff_new", newText);
+  }, [newText]);
+
   const oldFileInputRef = useRef<HTMLInputElement>(null);
   const newFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -295,16 +312,16 @@ export default function SplitDiffView({
         {/* Sticky Toolbar - Always at top below Navigation */}
         <div className="sticky top-14 z-20 bg-background border-b border-border/40 pb-4 mb-4">
           <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-card/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleFormat}
-                    className="h-8 gap-2"
+                    className="h-9 gap-2 px-3 touch-target transition-smooth"
                   >
-                    <FileJson size={14} />
+                    <FileJson size={16} />
                     <span className="hidden sm:inline">Prettify</span>
                   </Button>
                 </TooltipTrigger>
@@ -317,9 +334,9 @@ export default function SplitDiffView({
                     variant="ghost"
                     size="sm"
                     onClick={handleSwap}
-                    className="h-8 gap-2"
+                    className="h-9 gap-2 px-3 touch-target transition-smooth"
                   >
-                    <ArrowRightLeft size={14} />
+                    <ArrowRightLeft size={16} />
                     <span className="hidden sm:inline">Swap</span>
                   </Button>
                 </TooltipTrigger>
@@ -332,9 +349,9 @@ export default function SplitDiffView({
                     variant="ghost"
                     size="sm"
                     onClick={handleClear}
-                    className="h-8 gap-2 text-destructive hover:text-destructive"
+                    className="h-9 gap-2 px-3 text-destructive hover:text-destructive touch-target transition-smooth"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                     <span className="hidden sm:inline">Clear</span>
                   </Button>
                 </TooltipTrigger>
@@ -410,11 +427,11 @@ export default function SplitDiffView({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 h-[600px] font-mono text-sm">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-4 min-h-[600px] md:h-[700px] font-mono text-sm">
           {/* Left Pane */}
           <div
             className={cn(
-              "flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-200",
+              "flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-200 h-[400px] md:h-auto",
               errors.old
                 ? "border-red-500/50 ring-1 ring-red-500/20"
                 : "border-border/40 hover:border-border/80"
@@ -532,7 +549,7 @@ export default function SplitDiffView({
           {/* Right Pane */}
           <div
             className={cn(
-              "flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-200",
+              "flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-200 h-[400px] md:h-auto",
               errors.new
                 ? "border-red-500/50 ring-1 ring-red-500/20"
                 : "border-border/40 hover:border-border/80"

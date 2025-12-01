@@ -28,6 +28,23 @@ export default function JsonEscapeUnescape() {
   const [error, setError] = useState<string | null>(null);
   const [formattedJsonOutput, setFormattedJsonOutput] = useState<any>(null);
 
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedInput = localStorage.getItem("jsonEscape_input");
+    const savedMode = localStorage.getItem("jsonEscape_mode") as "escape" | "unescape" | null;
+    if (savedInput) setInputText(savedInput);
+    if (savedMode) setMode(savedMode);
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem("jsonEscape_input", inputText);
+  }, [inputText]);
+
+  useEffect(() => {
+    localStorage.setItem("jsonEscape_mode", mode);
+  }, [mode]);
+
   // Tree View Controls
   const [expandAllTrigger, setExpandAllTrigger] = useState(0);
   const [shouldExpand, setShouldExpand] = useState(false);
@@ -161,16 +178,16 @@ export default function JsonEscapeUnescape() {
         {/* Sticky Toolbar */}
         <div className="sticky top-14 z-20 bg-background border-b border-border/40 pb-4 mb-4">
           <div className="flex flex-wrap items-center justify-between gap-4 p-2 bg-card/50 backdrop-blur-sm border border-border/40 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={toggleMode}
-                    className="h-8 gap-2"
+                    className="h-9 gap-2 px-3 touch-target transition-smooth"
                   >
-                    <ArrowLeftRight size={14} />
+                    <ArrowLeftRight size={16} />
                     <span className="hidden sm:inline">
                       Switch to {mode === "escape" ? "Unescape" : "Escape"}
                     </span>
@@ -186,9 +203,9 @@ export default function JsonEscapeUnescape() {
                     variant="ghost"
                     size="sm"
                     onClick={handleClear}
-                    className="h-8 gap-2 text-destructive hover:text-destructive"
+                    className="h-9 gap-2 px-3 text-destructive hover:text-destructive touch-target transition-smooth"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
                     <span className="hidden sm:inline">Clear</span>
                   </Button>
                 </TooltipTrigger>
@@ -250,7 +267,7 @@ export default function JsonEscapeUnescape() {
           </div>
         </div> */}
 
-        <div className="grid grid-cols-2 gap-4 h-[600px] font-mono text-sm">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-4 min-h-[600px] md:h-[700px] font-mono text-sm">
           {/* Left: Input Pane */}
           <div
             className={cn(
