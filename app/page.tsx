@@ -3,13 +3,14 @@
 import { useState } from "react";
 import SplitDiffView from "@/components/SplitDiffView";
 import JsonFormatter from "@/components/JsonFormatter";
+import JsonEscapeUnescape from "@/components/JsonEscapeUnescape";
 import Navigation from "@/components/Navigation";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
-import { GitCompare, FileJson } from "lucide-react";
+import { GitCompare, FileJson, Quote } from "lucide-react";
 
 export default function Home() {
-  const [mode, setMode] = useState<"diff" | "formatter">("diff");
+  const [mode, setMode] = useState<"diff" | "formatter" | "escape">("diff");
 
   const sampleOld = JSON.stringify(
     {
@@ -80,12 +81,14 @@ export default function Home() {
         <div className="w-full max-w-7xl flex-1 p-5 md:p-12">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-fuchsia-500 to-cyan-500 bg-clip-text text-transparent">
-              {mode === "diff" ? "Compare JSON" : "JSON Formatter"}
+              {mode === "diff" ? "Compare JSON" : mode === "formatter" ? "JSON Formatter" : "JSON Escape/Unescape"}
             </h1>
             <p className="text-muted-foreground mb-4">
               {mode === "diff"
                 ? "Paste your JSON below to see the differences."
-                : "Format, validate, and minify your JSON with ease."}
+                : mode === "formatter"
+                  ? "Format, validate, and minify your JSON with ease."
+                  : "Escape or unescape JSON special characters with preview."}
             </p>
 
             {/* Mode Toggle */}
@@ -108,13 +111,24 @@ export default function Home() {
                 <FileJson size={16} />
                 Formatter
               </Button>
+              <Button
+                variant={mode === "escape" ? "secondary" : "ghost"}
+                onClick={() => setMode("escape")}
+                size="sm"
+                className="h-9 px-4 gap-2"
+              >
+                <Quote size={16} />
+                Escape/Unescape
+              </Button>
             </div>
           </div>
 
           {mode === "diff" ? (
             <SplitDiffView initialOld={sampleOld} initialNew={sampleNew} />
-          ) : (
+          ) : mode === "formatter" ? (
             <JsonFormatter />
+          ) : (
+            <JsonEscapeUnescape />
           )}
         </div>
       </main>
