@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "JSON Diff Engine - Compare & Visualize JSON Differences Online",
   description:
-    "Free online JSON diff tool to compare, visualize, and analyze differences between JSON files. Side-by-side comparison with syntax highlighting, validation, and instant results.",
+    "Free online JSON diff tool to compare, visualize, and analyze differences between JSON files. Side-by-side comparison with syntax highlighting, validation, and instant results. Also includes spreadsheet viewer for CSV and Excel files.",
   keywords: [
     "json diff",
     "json compare",
@@ -23,6 +23,10 @@ export const metadata: Metadata = {
     "json merge",
     "json formatter",
     "online json diff",
+    "spreadsheet viewer",
+    "csv viewer",
+    "excel viewer",
+    "online spreadsheet",
   ],
   authors: [{ name: "JSON Diff Engine" }],
   creator: "JSON Diff Engine",

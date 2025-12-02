@@ -1,0 +1,28 @@
+/* Theme-aware styles for react-data-grid */
+.rdg {
+    --rdg-background-color: hsl(var(--background));
+    --rdg-header-background-color: hsl(var(--muted));
+    --rdg-row-hover-background-color: hsl(var(--muted) / 0.5);
+    --rdg-row-selected-background-color: hsl(var(--primary) / 0.1);
+    --rdg-border-color: hsl(var(--border));
+    --rdg-summary-border-color: hsl(var(--border));
+    --rdg-color: hsl(var(--foreground));
+    --rdg-header-color: hsl(var(--foreground));
+    --rdg-cell-frozen-box-shadow: 2px 0 5px -2px rgba(136, 136, 136, 0.3);
+}
+
+.rdg-cell {
+    border-right: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+}
+
+.rdg-header-row {
+    font-weight: 600;
+}
+
+.rdg-row:hover {
+    background-color: hsl(var(--muted) / 0.5);
+}

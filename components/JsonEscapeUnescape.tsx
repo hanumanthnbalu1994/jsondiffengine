@@ -31,7 +31,10 @@ export default function JsonEscapeUnescape() {
   // Load from localStorage on mount
   useEffect(() => {
     const savedInput = localStorage.getItem("jsonEscape_input");
-    const savedMode = localStorage.getItem("jsonEscape_mode") as "escape" | "unescape" | null;
+    const savedMode = localStorage.getItem("jsonEscape_mode") as
+      | "escape"
+      | "unescape"
+      | null;
     if (savedInput) setInputText(savedInput);
     if (savedMode) setMode(savedMode);
   }, []);
@@ -54,13 +57,13 @@ export default function JsonEscapeUnescape() {
   // Escape special characters for JSON
   const escapeJson = (str: string): string => {
     return str
-      .replace(/\\/g, "\\\\") // Backslash must be first
-      .replace(/"/g, '\\"') // Double quote
-      .replace(/\n/g, "\\n") // Newline
-      .replace(/\r/g, "\\r") // Carriage return
-      .replace(/\t/g, "\\t") // Tab
-      .replace(/\b/g, "\\b") // Backspace
-      .replace(/\f/g, "\\f"); // Form feed
+      .replace(/\\\\/g, "\\") // unescape backslash first
+      .replace(/\\"/g, '"') // unescape quotes
+      .replace(/\\n/g, "\n") // unescape newline
+      .replace(/\\r/g, "\r") // unescape carriage return
+      .replace(/\\t/g, "\t") // unescape tab
+      .replace(/\\b/g, "\b") // unescape backspace
+      .replace(/\\f/g, "\f"); // unescape form feed
   };
 
   // Unescape JSON escaped characters

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { GitCompare, FileJson, Quote, Menu } from "lucide-react";
+import { GitCompare, FileJson, Quote, Menu, Table } from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -34,6 +34,12 @@ export default function Navigation() {
             label: "Escape/Unescape",
             icon: Quote,
             active: pathname === "/escape",
+        },
+        {
+            href: "/spreadsheet",
+            label: "Spreadsheet",
+            icon: Table,
+            active: pathname === "/spreadsheet",
         },
     ];
 
@@ -96,8 +102,8 @@ export default function Navigation() {
                                             <Button
                                                 variant={route.active ? "default" : "ghost"}
                                                 className={`w-full justify-start gap-3 h-12 relative transition-all ${route.active
-                                                        ? "bg-primary text-primary-foreground shadow-sm"
-                                                        : "hover:bg-accent"
+                                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                                    : "hover:bg-accent"
                                                     }`}
                                             >
                                                 {route.active && (
