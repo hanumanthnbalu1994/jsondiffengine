@@ -201,16 +201,20 @@ export default function JsonFormatter() {
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => {
-                                            const newText = jsonText.replace(/\|\|/g, ",");
+                                            const findText = typeof window !== 'undefined' ? (localStorage.getItem("formatter_findText") || "||") : "||";
+                                            const replaceText = typeof window !== 'undefined' ? (localStorage.getItem("formatter_replaceText") || ",") : ",";
+                                            const newText = jsonText.split(findText).join(replaceText);
                                             setJsonText(newText);
                                         }}
-                                        className="h-8 gap-2"
+                                        className="h-9 gap-2 px-3 touch-target transition-smooth"
                                     >
-                                        <ArrowRightLeft size={14} />
-                                        <span className="hidden sm:inline">|| to ,</span>
+                                        <ArrowRightLeft size={16} />
+                                        <span className="hidden sm:inline">
+                                            {typeof window !== 'undefined' ? (localStorage.getItem("formatter_findText") || "||") : "||"} → {typeof window !== 'undefined' ? (localStorage.getItem("formatter_replaceText") || ",") : ","}
+                                        </span>
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent>Replace || with ,</TooltipContent>
+                                <TooltipContent>Replace text pattern</TooltipContent>
                             </Tooltip>
                             {/* View Mode Toggle */}
                             <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40 mr-2">

@@ -5,12 +5,28 @@ import JsonEscapeUnescape from "@/components/JsonEscapeUnescape";
 export default function EscapePage() {
     return (
         <div className="w-full max-w-7xl flex-1 p-5 md:p-12">
-            <div className="mb-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 bg-clip-text text-transparent animate-in fade-in duration-1000">
+            <div className="mb-8 text-center relative overflow-hidden p-12 md:p-16">
+                {/* Modern escape characters pattern */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none font-mono">
+                    <div className="grid grid-cols-5 gap-6 text-4xl md:text-6xl">
+                        <span className="text-cyan-500">\\n</span>
+                        <span className="text-primary">\\t</span>
+                        <span className="text-fuchsia-500">\\r</span>
+                        <span className="text-cyan-500">\\\"</span>
+                        <span className="text-primary">\\\\</span>
+                        <span className="text-fuchsia-500">\\b</span>
+                        <span className="text-cyan-500">\\f</span>
+                        <span className="text-primary">\\u</span>
+                        <span className="text-fuchsia-500">\\/</span>
+                        <span className="text-cyan-500">\\0</span>
+                    </div>
+                </div>
+
+                <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-fuchsia-500 to-cyan-500 bg-clip-text text-transparent relative z-10">
                     JSON Escape/Unescape
                 </h1>
-                <p className="text-muted-foreground text-lg mb-4 animate-in fade-in slide-in-from-bottom-2 duration-700 delay-150">
-                    Escape or unescape JSON special characters with preview.
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto relative z-10">
+                    Safely escape or unescape JSON special characters
                 </p>
             </div>
             <JsonEscapeUnescape />
