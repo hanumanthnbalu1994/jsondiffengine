@@ -12,14 +12,8 @@ import {
   Trash2,
   Download,
   ArrowLeftRight,
-  FileText,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import JsonTreeView from "@/components/JsonTreeView";
 
 export default function JsonEscapeUnescape() {
@@ -27,26 +21,6 @@ export default function JsonEscapeUnescape() {
   const [mode, setMode] = useState<"escape" | "unescape">("unescape");
   const [error, setError] = useState<string | null>(null);
   const [formattedJsonOutput, setFormattedJsonOutput] = useState<any>(null);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedInput = localStorage.getItem("jsonEscape_input");
-    const savedMode = localStorage.getItem("jsonEscape_mode") as
-      | "escape"
-      | "unescape"
-      | null;
-    if (savedInput) setInputText(savedInput);
-    if (savedMode) setMode(savedMode);
-  }, []);
-
-  // Save to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("jsonEscape_input", inputText);
-  }, [inputText]);
-
-  useEffect(() => {
-    localStorage.setItem("jsonEscape_mode", mode);
-  }, [mode]);
 
   // Tree View Controls
   const [expandAllTrigger, setExpandAllTrigger] = useState(0);
@@ -71,7 +45,7 @@ export default function JsonEscapeUnescape() {
     try {
       // Use JSON.parse with a wrapper to properly unescape
       return JSON.parse(`"${str}"`);
-    } catch (e) {
+    } catch (_e) {
       // If JSON.parse fails, try manual unescaping
       return str
         .replace(/\\n/g, "\n")
@@ -109,7 +83,7 @@ export default function JsonEscapeUnescape() {
         try {
           const parsed = JSON.parse(unescaped);
           setFormattedJsonOutput(parsed);
-        } catch (parseError) {
+        } catch (_parseError) {
           // If not valid JSON, show as object with the unescaped string
           const jsonObj = {
             unescaped: unescaped,
@@ -121,7 +95,7 @@ export default function JsonEscapeUnescape() {
         }
       }
       setError(null);
-    } catch (e) {
+    } catch (_e) {
       setError(`Failed to ${mode} text`);
       setFormattedJsonOutput(null);
     }
@@ -144,7 +118,9 @@ export default function JsonEscapeUnescape() {
   };
 
   const handleDownload = () => {
-    if (!formattedJsonOutput) return;
+    if (!formattedJsonOutput) {
+      return;
+    }
     const jsonString = JSON.stringify(formattedJsonOutput, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -196,9 +172,7 @@ export default function JsonEscapeUnescape() {
                     </span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  Toggle between Escape and Unescape modes
-                </TooltipContent>
+                <TooltipContent>Toggle between Escape and Unescape modes</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>

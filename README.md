@@ -80,6 +80,7 @@ MIT License
 ## 👤 Author
 
 **Hanumanthappa N B**
+
 - GitHub: [@hanumanthnbalu1994](https://github.com/hanumanthnbalu1994)
 
 ## ⭐ Support

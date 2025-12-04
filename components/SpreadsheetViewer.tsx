@@ -2,16 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Upload,
-  Download,
-  FileSpreadsheet,
-  Trash2,
-  Plus,
-} from "lucide-react";
+import { Upload, Download, FileSpreadsheet, Trash2, Plus } from "lucide-react";
 import * as XLSX from "xlsx";
 import { DataGrid } from "react-data-grid";
 import type { Column, RenderEditCellProps } from "react-data-grid";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import "react-data-grid/lib/styles.css";
 import "../app/spreadsheet-grid.css";
 
@@ -20,39 +16,43 @@ interface SpreadsheetData {
 }
 
 interface ColumnMetadata {
-  type: 'text' | 'number' | 'date' | 'dropdown';
+  type: "text" | "number" | "date" | "dropdown";
   dropdownOptions?: string[];
 }
 
 // Detect column data type
 function detectColumnType(values: (string | number)[]): ColumnMetadata {
-  const nonEmptyValues = values.filter(v => v !== "" && v !== null && v !== undefined);
+  const nonEmptyValues = values.filter((v) => v !== "" && v !== null && v !== undefined);
 
-  if (nonEmptyValues.length === 0) return { type: 'text' };
+  if (nonEmptyValues.length === 0) {
+    return { type: "text" };
+  }
 
   // Check for dates (YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY patterns)
   const datePattern = /^\d{4}-\d{2}-\d{2}$|^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
-  const dateCount = nonEmptyValues.filter(v => datePattern.test(String(v))).length;
+  const dateCount = nonEmptyValues.filter((v) => datePattern.test(String(v))).length;
   if (dateCount / nonEmptyValues.length > 0.5) {
-    return { type: 'date' };
+    return { type: "date" };
   }
 
   // Check for numbers
-  const numberCount = nonEmptyValues.filter(v => !isNaN(Number(v)) && String(v).trim() !== '').length;
+  const numberCount = nonEmptyValues.filter(
+    (v) => !isNaN(Number(v)) && String(v).trim() !== ""
+  ).length;
   if (numberCount / nonEmptyValues.length > 0.8) {
-    return { type: 'number' };
+    return { type: "number" };
   }
 
   // Check for dropdown (limited unique values)
-  const uniqueValues = [...new Set(nonEmptyValues.map(v => String(v)))];
+  const uniqueValues = [...new Set(nonEmptyValues.map((v) => String(v)))];
   if (uniqueValues.length <= 10 && uniqueValues.length > 1 && nonEmptyValues.length > 3) {
     return {
-      type: 'dropdown',
-      dropdownOptions: uniqueValues
+      type: "dropdown",
+      dropdownOptions: uniqueValues,
     };
   }
 
-  return { type: 'text' };
+  return { type: "text" };
 }
 
 // Custom text editor
@@ -71,12 +71,14 @@ function TextEditor({ row, column, onRowChange, onClose }: RenderEditCellProps<S
 // Date editor
 function DateEditor({ row, column, onRowChange, onClose }: RenderEditCellProps<SpreadsheetData>) {
   const formatDateForInput = (value: string | number) => {
-    if (!value) return '';
+    if (!value) {
+      return "";
+    }
     const dateStr = String(value);
     // Try to parse various date formats
     const date = new Date(dateStr);
     if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0];
+      return date.toISOString().split("T")[0];
     }
     return dateStr;
   };
@@ -94,10 +96,16 @@ function DateEditor({ row, column, onRowChange, onClose }: RenderEditCellProps<S
 }
 
 // Dropdown editor
-function DropdownEditor({ row, column, onRowChange, onClose, options }: RenderEditCellProps<SpreadsheetData> & { options: string[] }) {
+function DropdownEditor({
+  row,
+  column,
+  onRowChange,
+  onClose,
+  options,
+}: RenderEditCellProps<SpreadsheetData> & { options: string[] }) {
   return (
     <select
-      className="w-full h-full px-2 bg-background text-foreground border-none outline-none"
+      className="w-full h-full px-2 bg-background text-foreground border-none outline-none focus:ring-2 focus:ring-primary rounded"
       autoFocus
       value={row[column.key] as string}
       onChange={(e) => {
@@ -130,17 +138,18 @@ function NumberEditor({ row, column, onRowChange, onClose }: RenderEditCellProps
   );
 }
 
-export default function SpreadsheetViewer() {
+function SpreadsheetViewerContent() {
   const [data, setData] = useState<SpreadsheetData[]>([]);
   const [columns, setColumns] = useState<Column<SpreadsheetData>[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [fileSize, setFileSize] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [columnMetadata, setColumnMetadata] = useState<Map<string, ColumnMetadata>>(new Map());
 
   // Handle file upload
   const handleFileUpload = useCallback((file: File) => {
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const validTypes = [
       "text/csv",
@@ -148,10 +157,7 @@ export default function SpreadsheetViewer() {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
 
-    if (
-      !validTypes.includes(file.type) &&
-      !file.name.match(/\.(csv|xlsx|xls)$/i)
-    ) {
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(csv|xlsx|xls)$/i)) {
       alert("Please upload a valid CSV or Excel file");
       return;
     }
@@ -188,16 +194,15 @@ export default function SpreadsheetViewer() {
         // Detect column types
         const metadata = new Map<string, ColumnMetadata>();
         headers.forEach((_, colIdx) => {
-          const columnValues = nonEmptyRows.map(row => row[colIdx]);
+          const columnValues = nonEmptyRows.map((row) => row[colIdx]);
           const colType = detectColumnType(columnValues);
           metadata.set(`col_${colIdx}`, colType);
         });
-        setColumnMetadata(metadata);
 
         // Create row number column
         const rowNumberColumn: Column<SpreadsheetData> = {
-          key: 'rowNumber',
-          name: '#',
+          key: "rowNumber",
+          name: "#",
           width: 50,
           frozen: true,
           resizable: false,
@@ -211,17 +216,17 @@ export default function SpreadsheetViewer() {
         // Create data columns with appropriate editors
         const dataCols: Column<SpreadsheetData>[] = headers.map((header, idx) => {
           const colKey = `col_${idx}`;
-          const colMeta = metadata.get(colKey) || { type: 'text' };
+          const colMeta = metadata.get(colKey) || { type: "text" };
 
           let renderEditCell;
           switch (colMeta.type) {
-            case 'date':
+            case "date":
               renderEditCell = DateEditor;
               break;
-            case 'number':
+            case "number":
               renderEditCell = NumberEditor;
               break;
-            case 'dropdown':
+            case "dropdown":
               renderEditCell = (props: RenderEditCellProps<SpreadsheetData>) =>
                 DropdownEditor({ ...props, options: colMeta.dropdownOptions || [] });
               break;
@@ -296,13 +301,15 @@ export default function SpreadsheetViewer() {
 
   // Export to Excel
   const exportToExcel = useCallback(() => {
-    if (data.length === 0) return;
+    if (data.length === 0) {
+      return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(
       data.map((row) => {
         const newRow: { [key: string]: string | number } = {};
         columns.forEach((col) => {
-          if (col.key !== 'rowNumber') {
+          if (col.key !== "rowNumber") {
             newRow[String(col.name)] = row[col.key] ?? "";
           }
         });
@@ -312,21 +319,20 @@ export default function SpreadsheetViewer() {
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-    XLSX.writeFile(
-      workbook,
-      fileName.replace(/\.[^/.]+$/, "") + "_edited.xlsx"
-    );
+    XLSX.writeFile(workbook, fileName.replace(/\.[^/.]+$/, "") + "_edited.xlsx");
   }, [data, columns, fileName]);
 
   // Export to CSV
   const exportToCSV = useCallback(() => {
-    if (data.length === 0) return;
+    if (data.length === 0) {
+      return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(
       data.map((row) => {
         const newRow: { [key: string]: string | number } = {};
         columns.forEach((col) => {
-          if (col.key !== 'rowNumber') {
+          if (col.key !== "rowNumber") {
             newRow[String(col.name)] = row[col.key] ?? "";
           }
         });
@@ -346,12 +352,14 @@ export default function SpreadsheetViewer() {
 
   // Export to JSON
   const exportToJSON = useCallback(() => {
-    if (data.length === 0) return;
+    if (data.length === 0) {
+      return;
+    }
 
     const jsonData = data.map((row) => {
       const newRow: { [key: string]: string | number } = {};
       columns.forEach((col) => {
-        if (col.key !== 'rowNumber') {
+        if (col.key !== "rowNumber") {
           newRow[String(col.name)] = row[col.key] ?? "";
         }
       });
@@ -373,7 +381,7 @@ export default function SpreadsheetViewer() {
   const addRow = useCallback(() => {
     const newRow: SpreadsheetData = { id: data.length, rowNumber: data.length + 1 };
     columns.forEach((col) => {
-      if (col.key !== 'rowNumber') {
+      if (col.key !== "rowNumber") {
         newRow[col.key] = "";
       }
     });
@@ -386,7 +394,6 @@ export default function SpreadsheetViewer() {
     setColumns([]);
     setFileName("");
     setFileSize(0);
-    setColumnMetadata(new Map());
   }, []);
 
   // Handle row update
@@ -394,9 +401,30 @@ export default function SpreadsheetViewer() {
     setData(rows);
   }, []);
 
+  // Handle column reorder
+  const handleColumnsReorder = useCallback((sourceKey: string, targetKey: string) => {
+    setColumns((prevColumns) => {
+      const sourceIndex = prevColumns.findIndex((col) => col.key === sourceKey);
+      const targetIndex = prevColumns.findIndex((col) => col.key === targetKey);
+
+      if (sourceIndex === -1 || targetIndex === -1 || sourceIndex === 0 || targetIndex === 0) {
+        // Don't allow reordering the row number column
+        return prevColumns;
+      }
+
+      const newColumns = [...prevColumns];
+      const [movedColumn] = newColumns.splice(sourceIndex, 1);
+      newColumns.splice(targetIndex, 0, movedColumn);
+
+      return newColumns;
+    });
+  }, []);
+
   // Format file size
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) {
+      return "0 Bytes";
+    }
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -408,21 +436,16 @@ export default function SpreadsheetViewer() {
       {/* Upload Section */}
       {data.length === 0 ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${isDragging
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/50"
-            }`}
+          className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+            isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+          }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           <FileSpreadsheet className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold mb-2">
-            Drop spreadsheet here or click to select
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            Supports CSV, XLSX, and XLS files
-          </p>
+          <h3 className="text-xl font-semibold mb-2">Drop spreadsheet here or click to select</h3>
+          <p className="text-muted-foreground mb-4">Supports CSV, XLSX, and XLS files</p>
           <input
             type="file"
             id="file-upload"
@@ -446,8 +469,7 @@ export default function SpreadsheetViewer() {
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{fileName}</h3>
               <p className="text-sm text-muted-foreground">
-                {formatFileSize(fileSize)} • {data.length} rows •{" "}
-                {columns.length - 1} columns
+                {formatFileSize(fileSize)} • {data.length} rows • {columns.length - 1} columns
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -480,6 +502,7 @@ export default function SpreadsheetViewer() {
               columns={columns}
               rows={data}
               onRowsChange={handleRowsChange}
+              onColumnsReorder={handleColumnsReorder}
               style={{ height: "600px" }}
               rowKeyGetter={(row) => row.id}
             />
@@ -487,5 +510,13 @@ export default function SpreadsheetViewer() {
         </>
       )}
     </div>
+  );
+}
+
+export default function SpreadsheetViewer() {
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <SpreadsheetViewerContent />
+    </DndProvider>
   );
 }

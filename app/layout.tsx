@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { Analytics } from "@vercel/analytics/react";
 import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -66,7 +67,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased flex flex-col",
           inter.variable
         )}
         suppressHydrationWarning
@@ -78,9 +79,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navigation />
-          <main className="container mx-auto p-4 md:p-6 min-h-[calc(100vh-64px)]">
-            {children}
-          </main>
+          <main className="container mx-auto p-4 md:p-6 flex-1">{children}</main>
+          <Footer />
           <Analytics />
         </ThemeProvider>
       </body>

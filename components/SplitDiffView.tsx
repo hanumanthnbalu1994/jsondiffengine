@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { diffLines, Change } from "diff";
+import { diffLines } from "diff";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -19,49 +19,17 @@ import {
   ChevronDown,
   ArrowUp,
 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SplitDiffViewProps {
   initialOld: string;
   initialNew: string;
 }
 
-export default function SplitDiffView({
-  initialOld,
-  initialNew,
-}: SplitDiffViewProps) {
+export default function SplitDiffView({ initialOld, initialNew }: SplitDiffViewProps) {
   const [oldText, setOldText] = useState(initialOld);
   const [newText, setNewText] = useState(initialNew);
   const [mode, setMode] = useState<"edit" | "diff">("edit"); // Default to edit mode
-  const [errors, setErrors] = useState<{
-    old: string | null;
-    new: string | null;
-  }>({
-    old: null,
-    new: null,
-  });
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedOld = localStorage.getItem("jsonDiff_old");
-    const savedNew = localStorage.getItem("jsonDiff_new");
-    if (savedOld !== null) setOldText(savedOld);
-    if (savedNew !== null) setNewText(savedNew);
-  }, []);
-
-  // Save to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("jsonDiff_old", oldText);
-  }, [oldText]);
-
-  useEffect(() => {
-    localStorage.setItem("jsonDiff_new", newText);
-  }, [newText]);
 
   const oldFileInputRef = useRef<HTMLInputElement>(null);
   const newFileInputRef = useRef<HTMLInputElement>(null);
@@ -76,37 +44,44 @@ export default function SplitDiffView({
 
   // State for scroll to top button
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Validate JSON on change
-  useEffect(() => {
+  const errors = useMemo(() => {
     let oldErr = null;
     let newErr = null;
 
     try {
-      if (oldText.trim()) JSON.parse(oldText);
-    } catch (e) {
+      if (oldText.trim()) {
+        JSON.parse(oldText);
+      }
+    } catch (_e) {
       oldErr = "Invalid JSON";
     }
 
     try {
-      if (newText.trim()) JSON.parse(newText);
-    } catch (e) {
+      if (newText.trim()) {
+        JSON.parse(newText);
+      }
+    } catch (_e) {
       newErr = "Invalid JSON";
     }
 
-    setErrors({ old: oldErr, new: newErr });
+    return { old: oldErr, new: newErr };
   }, [oldText, newText]);
 
   const diffs = useMemo(() => {
     // Only compute diffs if we are in diff mode
-    if (mode === "edit") return [];
+    if (mode === "edit") {
+      return [];
+    }
     return diffLines(oldText, newText);
   }, [oldText, newText, mode]);
 
   // Process diffs into side-by-side lines with alignment
   const rows = useMemo(() => {
-    if (mode === "edit") return [];
+    if (mode === "edit") {
+      return [];
+    }
     const lines: {
       left?: { text: string; type: "removed" | "unchanged" | "empty" };
       right?: { text: string; type: "added" | "unchanged" | "empty" };
@@ -176,7 +151,9 @@ export default function SplitDiffView({
 
   // Calculate change positions for minimap
   const changePositions = useMemo(() => {
-    if (mode === "edit") return [];
+    if (mode === "edit") {
+      return [];
+    }
     const positions: { index: number; type: "added" | "removed" | "modified" }[] = [];
 
     rows.forEach((row, index) => {
@@ -225,17 +202,17 @@ export default function SplitDiffView({
     navigator.clipboard.writeText(text);
   };
 
-  const handleFileUpload = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    side: "old" | "new"
-  ) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, side: "old" | "new") => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target?.result as string;
-        if (side === "old") setOldText(content);
-        else setNewText(content);
+        if (side === "old") {
+          setOldText(content);
+        } else {
+          setNewText(content);
+        }
       };
       reader.readAsText(file);
     }
@@ -247,7 +224,7 @@ export default function SplitDiffView({
         const parsed = JSON.parse(oldText);
         setOldText(JSON.stringify(parsed, null, 2));
       }
-    } catch (e) {
+    } catch (_e) {
       // Already handled by validation state
     }
     try {
@@ -255,7 +232,7 @@ export default function SplitDiffView({
         const parsed = JSON.parse(newText);
         setNewText(JSON.stringify(parsed, null, 2));
       }
-    } catch (e) {
+    } catch (_e) {
       // Already handled by validation state
     }
   };
@@ -278,9 +255,13 @@ export default function SplitDiffView({
   };
 
   const handleScroll = (source: "left" | "right") => {
-    if (mode !== "diff") return;
+    if (mode !== "diff") {
+      return;
+    }
 
-    if (isScrolling.current && isScrolling.current !== source) return;
+    if (isScrolling.current && isScrolling.current !== source) {
+      return;
+    }
 
     isScrolling.current = source;
 
@@ -372,12 +353,7 @@ export default function SplitDiffView({
               ) : (
                 <Button
                   onClick={handleCompare}
-                  disabled={
-                    !!errors.old ||
-                    !!errors.new ||
-                    !oldText.trim() ||
-                    !newText.trim()
-                  }
+                  disabled={!!errors.old || !!errors.new || !oldText.trim() || !newText.trim()}
                   className={cn(
                     "h-9 px-6 gap-2 font-medium shadow-md transition-all",
                     !errors.old && !errors.new && oldText.trim() && newText.trim()
@@ -503,10 +479,17 @@ export default function SplitDiffView({
                       return (
                         <div
                           key={i}
-                          ref={hasChange ? (el) => {
-                            if (el) changeRefs.current.set(i, el);
-                            else changeRefs.current.delete(i);
-                          } : undefined}
+                          ref={
+                            hasChange
+                              ? (el) => {
+                                  if (el) {
+                                    changeRefs.current.set(i, el);
+                                  } else {
+                                    changeRefs.current.delete(i);
+                                  }
+                                }
+                              : undefined
+                          }
                           className="flex min-h-[24px] hover:bg-muted/20 transition-colors"
                         >
                           <div className="w-10 text-[10px] text-muted-foreground/30 text-right pr-3 select-none pt-1">
@@ -516,9 +499,8 @@ export default function SplitDiffView({
                             className={cn(
                               "flex-1 px-2 whitespace-pre-wrap break-all leading-relaxed",
                               row.left?.type === "removed" &&
-                              "bg-red-500/10 text-red-600 dark:text-red-400 decoration-red-500/30",
-                              row.left?.type === "empty" &&
-                              "bg-transparent select-none",
+                                "bg-red-500/10 text-red-600 dark:text-red-400 decoration-red-500/30",
+                              row.left?.type === "empty" && "bg-transparent select-none",
                               !row.left && "bg-transparent"
                             )}
                           >
@@ -625,9 +607,8 @@ export default function SplitDiffView({
                           className={cn(
                             "flex-1 px-2 whitespace-pre-wrap break-all leading-relaxed",
                             row.right?.type === "added" &&
-                            "bg-green-500/10 text-green-600 dark:text-green-400 decoration-green-500/30",
-                            row.right?.type === "empty" &&
-                            "bg-transparent select-none",
+                              "bg-green-500/10 text-green-600 dark:text-green-400 decoration-green-500/30",
+                            row.right?.type === "empty" && "bg-transparent select-none",
                             !row.right && "bg-transparent"
                           )}
                         >

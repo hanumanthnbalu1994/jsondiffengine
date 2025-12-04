@@ -17,7 +17,7 @@ interface JsonTreeNodeProps {
 const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
   data,
   name,
-  isLast = true,
+  isLast: _isLast = true,
   depth = 0,
   expandAllTrigger = 0,
   shouldExpand = true,
@@ -36,8 +36,12 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
   };
 
   const getValueType = (value: any): string => {
-    if (value === null) return "null";
-    if (Array.isArray(value)) return "array";
+    if (value === null) {
+      return "null";
+    }
+    if (Array.isArray(value)) {
+      return "array";
+    }
     return typeof value;
   };
 
@@ -50,7 +54,9 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
     if (type === "array") {
       return `[${value.length} ${value.length === 1 ? "item" : "items"}]`;
     }
-    if (type === "string") return `"${value}"`;
+    if (type === "string") {
+      return `"${value}"`;
+    }
     return String(value);
   };
 
@@ -76,8 +82,7 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
   const type = getValueType(data);
   const isExpandable = type === "object" || type === "array";
   const hasChildren =
-    isExpandable &&
-    (type === "array" ? data.length > 0 : Object.keys(data).length > 0);
+    isExpandable && (type === "array" ? data.length > 0 : Object.keys(data).length > 0);
 
   return (
     <div className="font-mono text-sm">
@@ -105,21 +110,13 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
         )}
 
         {/* Key Name */}
-        {name && (
-          <span className="text-indigo-600 dark:text-indigo-400 font-medium">
-            {name}:
-          </span>
-        )}
+        {name && <span className="text-indigo-600 dark:text-indigo-400 font-medium">{name}:</span>}
 
         {/* Value or Preview */}
         {!isExpandable || !hasChildren || !isExpanded ? (
-          <span className={cn(getTypeColor(type), "flex-1")}>
-            {getValuePreview(data)}
-          </span>
+          <span className={cn(getTypeColor(type), "flex-1")}>{getValuePreview(data)}</span>
         ) : (
-          <span className="text-muted-foreground">
-            {type === "array" ? "[" : "{"}
-          </span>
+          <span className="text-muted-foreground">{type === "array" ? "[" : "{"}</span>
         )}
 
         {/* Copy Button */}
@@ -139,36 +136,33 @@ const JsonTreeNode: React.FC<JsonTreeNodeProps> = ({
         <div>
           {type === "array"
             ? data.map((item: any, index: number) => (
-              <JsonTreeNode
-                key={index}
-                data={item}
-                name={`[${index}]`}
-                isLast={index === data.length - 1}
-                depth={depth + 1}
-                expandAllTrigger={expandAllTrigger}
-                shouldExpand={shouldExpand}
-              />
-            ))
+                <JsonTreeNode
+                  key={index}
+                  data={item}
+                  name={`[${index}]`}
+                  isLast={index === data.length - 1}
+                  depth={depth + 1}
+                  expandAllTrigger={expandAllTrigger}
+                  shouldExpand={shouldExpand}
+                />
+              ))
             : Object.entries(data).map(([key, value], index, arr) => (
-              <JsonTreeNode
-                key={key}
-                data={value}
-                name={key}
-                isLast={index === arr.length - 1}
-                depth={depth + 1}
-                expandAllTrigger={expandAllTrigger}
-                shouldExpand={shouldExpand}
-              />
-            ))}
+                <JsonTreeNode
+                  key={key}
+                  data={value}
+                  name={key}
+                  isLast={index === arr.length - 1}
+                  depth={depth + 1}
+                  expandAllTrigger={expandAllTrigger}
+                  shouldExpand={shouldExpand}
+                />
+              ))}
         </div>
       )}
 
       {/* Closing Bracket */}
       {isExpandable && hasChildren && isExpanded && (
-        <div
-          className="text-muted-foreground py-0.5"
-          style={{ paddingLeft: `${depth * 16}px` }}
-        >
+        <div className="text-muted-foreground py-0.5" style={{ paddingLeft: `${depth * 16}px` }}>
           {type === "array" ? "]" : "}"}
         </div>
       )}

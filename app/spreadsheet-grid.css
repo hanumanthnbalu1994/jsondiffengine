@@ -1,28 +1,86 @@
 /* Theme-aware styles for react-data-grid */
 .rdg {
-    --rdg-background-color: hsl(var(--background));
-    --rdg-header-background-color: hsl(var(--muted));
-    --rdg-row-hover-background-color: hsl(var(--muted) / 0.5);
-    --rdg-row-selected-background-color: hsl(var(--primary) / 0.1);
-    --rdg-border-color: hsl(var(--border));
-    --rdg-summary-border-color: hsl(var(--border));
-    --rdg-color: hsl(var(--foreground));
-    --rdg-header-color: hsl(var(--foreground));
-    --rdg-cell-frozen-box-shadow: 2px 0 5px -2px rgba(136, 136, 136, 0.3);
+  --rdg-background-color: hsl(var(--background));
+  --rdg-header-background-color: hsl(var(--muted));
+  --rdg-row-hover-background-color: hsl(var(--muted) / 0.5);
+  --rdg-row-selected-background-color: hsl(var(--primary) / 0.1);
+  --rdg-border-color: hsl(var(--border));
+  --rdg-summary-border-color: hsl(var(--border));
+  --rdg-color: hsl(var(--foreground));
+  --rdg-header-color: hsl(var(--foreground));
+  --rdg-cell-frozen-box-shadow: 2px 0 5px -2px rgba(136, 136, 136, 0.3);
 }
 
 .rdg-cell {
-    border-right: 1px solid hsl(var(--border));
-    border-bottom: 1px solid hsl(var(--border));
-    padding: 0 8px;
-    display: flex;
-    align-items: center;
+  border-right: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
 }
 
 .rdg-header-row {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 .rdg-row:hover {
-    background-color: hsl(var(--muted) / 0.5);
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Custom scrollbar styling */
+.rdg ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.rdg ::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 6px;
+}
+
+.rdg ::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.5);
+  border-radius: 6px;
+  border: 2px solid hsl(var(--background));
+}
+
+.rdg ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
+}
+
+.rdg ::-webkit-scrollbar-corner {
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Firefox scrollbar */
+.rdg {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.5) hsl(var(--muted) / 0.3);
+}
+
+/* Row number cell styling */
+.row-number-cell {
+  background-color: hsl(var(--muted) / 0.5);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Dropdown editor styling */
+.rdg select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+/* Dark mode dropdown arrow */
+.dark .rdg select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ccc' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+/* Editable cell indicator */
+.rdg-cell[aria-selected="true"] {
+  box-shadow: inset 0 0 0 2px hsl(var(--primary));
 }
